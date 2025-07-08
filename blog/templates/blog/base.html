@@ -25,6 +25,7 @@
       <div id="nav-links" class="hidden md:flex space-x-4 items-center">
         {% if user.is_authenticated %}
           <span class="text-gray-700">Hi, {{ user.username }}</span>
+          <a href="{% url 'blog:profile' user.username %}" class="text-green-600 hover:underline">Profile</a>
           <form method="POST" action="{% url 'blog:logout' %}" class="inline">
             {% csrf_token %}
             <button type="submit" class="text-red-500 hover:underline">Logout</button>
@@ -40,6 +41,7 @@
     <div id="mobile-links" class="md:hidden hidden px-4 pb-3 space-y-2">
       {% if user.is_authenticated %}
         <span class="block text-gray-700">Hi, {{ user.username }}</span>
+        <a href="{% url 'blog:profile' user.username %}" class="block text-green-600 hover:underline">Profile</a>
         <form method="POST" action="{% url 'blog:logout' %}">
           {% csrf_token %}
           <button type="submit" class="block text-red-500 hover:underline">Logout</button>

@@ -16,7 +16,11 @@ urlpatterns = [
     # Post Detail
     path('post/<int:pk>/', views.PostDetailView.as_view(), name='detail'),
 
-    # Author-only Edit/Delete (Permissions Feature)
+    # Author-only Edit/Delete
     path('post/<int:pk>/edit/', views.PostEditView.as_view(), name='post_edit'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
+
+    # Place edit_profile BEFORE profile/<str:username>
+    path('profile/edit/', views.profile_edit_view, name='edit_profile'),
+    path('profile/<str:username>/', views.profile_view, name='profile'),
 ]

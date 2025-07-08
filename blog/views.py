@@ -1,15 +1,18 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.contrib.auth import login
 from django.views.generic import UpdateView, DeleteView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.contrib.auth.decorators import login_required
 
-from .models import BlogPost, Category
-from .forms import RegisterForm  # Register form
+from .models import BlogPost, Category, User, Profile
+from .forms import RegisterForm, ProfileForm
 
-# Home view with search, filter, and pagination
+# ----------------------------------------
+# Home Page View: with Search, Filter, Pagination
+# ----------------------------------------
 def blog_home(request):
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category', '')
@@ -36,11 +39,13 @@ def blog_home(request):
         'categories': Category.objects.all(),
     }
 
-    if request.headers.get('HX-Request'):  # HTMX request
+    if request.headers.get('HX-Request'):
         return render(request, 'blog/_post_list.html', context)
     return render(request, 'blog/home.html', context)
 
-# User registration view
+# ----------------------------------------
+# User Registration
+# ----------------------------------------
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -52,13 +57,17 @@ def register(request):
         form = RegisterForm()
     return render(request, 'blog/register.html', {'form': form})
 
-# View a single post
+# ----------------------------------------
+# Post Detail View
+# ----------------------------------------
 class PostDetailView(DetailView):
     model = BlogPost
     template_name = 'blog/detail.html'
     context_object_name = 'post'
 
-# Author-only post editing view
+# ----------------------------------------
+# Edit Post (Author-only)
+# ----------------------------------------
 class PostEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = BlogPost
     fields = ['title', 'content', 'categories']
@@ -68,7 +77,9 @@ class PostEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
-# Author-only post deletion view
+# ----------------------------------------
+# Delete Post (Author-only)
+# ----------------------------------------
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = BlogPost
     template_name = 'blog/post_confirm_delete.html'
@@ -77,3 +88,32 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
+# ----------------------------------------
+# View User Profile
+# ----------------------------------------
+@login_required
+def profile_view(request, username):
+    user = get_object_or_404(User, username=username)
+    profile = user.profile
+    user_posts = BlogPost.objects.filter(author=user).order_by('-created_at')
+    return render(request, 'blog/profile.html', {
+        'profile_user': user,
+        'profile': profile,
+        'user_posts': user_posts,
+    })
+
+# ----------------------------------------
+# Edit Own Profile
+# ----------------------------------------
+@login_required
+def profile_edit_view(request):
+    profile = request.user.profile
+    if request.method == 'POST':
+        form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('blog:profile', username=request.user.username)
+    else:
+        form = ProfileForm(instance=profile)
+    return render(request, 'blog/edit_profile.html', {'form': form})

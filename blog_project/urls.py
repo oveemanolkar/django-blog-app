@@ -1,7 +1,13 @@
 from django.contrib import admin
-from django.urls import path, include  # 👈 include is required to hook the blog app
+from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('blog.urls')),  # 👈 this connects your blog app to the homepage
+    path('', include('blog.urls')),  # Blog app at homepage
 ]
+
+# Serve media files during development (avatars, etc.)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
