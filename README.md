@@ -32,7 +32,7 @@ This is a full-stack blog platform built using Django and Tailwind CSS. It inclu
 
 - HTMX integration for dynamic filtering without page reloads
 
-- Add user profile pages with bio, avatar, and user post listings
+- User profile pages with bio, avatar, and user post listings
 
 
 
