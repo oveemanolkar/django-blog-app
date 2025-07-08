@@ -29,7 +29,7 @@
 </div>
 
 <!-- Dynamic Blog Post List -->
-<div id="post-list">
+<div id="post-list" hx-get="{% url 'blog:home' %}" hx-trigger="load" hx-target="#post-list">
   {% include 'blog/_post_list.html' %}
 </div>
 {% endblock %}

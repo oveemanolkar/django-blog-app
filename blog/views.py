@@ -10,9 +10,6 @@ from django.contrib.auth.decorators import login_required
 from .models import BlogPost, Category, User, Profile
 from .forms import RegisterForm, ProfileForm
 
-# ----------------------------------------
-# Home Page View: with Search, Filter, Pagination
-# ----------------------------------------
 def blog_home(request):
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category', '')
@@ -20,10 +17,7 @@ def blog_home(request):
     posts = BlogPost.objects.select_related('author').prefetch_related('categories').order_by('-created_at')
 
     if search_query:
-        posts = posts.filter(
-            Q(title__icontains=search_query) |
-            Q(content__icontains=search_query)
-        )
+        posts = posts.filter(Q(title__icontains=search_query) | Q(content__icontains=search_query))
 
     if category_id:
         posts = posts.filter(categories__id=category_id)
@@ -43,9 +37,6 @@ def blog_home(request):
         return render(request, 'blog/_post_list.html', context)
     return render(request, 'blog/home.html', context)
 
-# ----------------------------------------
-# User Registration
-# ----------------------------------------
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -57,17 +48,11 @@ def register(request):
         form = RegisterForm()
     return render(request, 'blog/register.html', {'form': form})
 
-# ----------------------------------------
-# Post Detail View
-# ----------------------------------------
 class PostDetailView(DetailView):
     model = BlogPost
     template_name = 'blog/detail.html'
     context_object_name = 'post'
 
-# ----------------------------------------
-# Edit Post (Author-only)
-# ----------------------------------------
 class PostEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = BlogPost
     fields = ['title', 'content', 'categories']
@@ -77,9 +62,6 @@ class PostEditView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
-# ----------------------------------------
-# Delete Post (Author-only)
-# ----------------------------------------
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = BlogPost
     template_name = 'blog/post_confirm_delete.html'
@@ -89,9 +71,6 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         post = self.get_object()
         return self.request.user == post.author
 
-# ----------------------------------------
-# View User Profile
-# ----------------------------------------
 @login_required
 def profile_view(request, username):
     user = get_object_or_404(User, username=username)
@@ -103,9 +82,6 @@ def profile_view(request, username):
         'user_posts': user_posts,
     })
 
-# ----------------------------------------
-# Edit Own Profile
-# ----------------------------------------
 @login_required
 def profile_edit_view(request):
     profile = request.user.profile
